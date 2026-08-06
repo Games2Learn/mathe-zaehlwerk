@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#65c9ea">
+<title>Theos Zählwerk</title>
+<style>
+:root{--ink:#17223b;--blue:#2864e8;--dark:#1746ad;--yellow:#ffd84d;--paper:#fffdf6}
+*{box-sizing:border-box}body{margin:0;background:#72d2ec;color:var(--ink);font-family:"Trebuchet MS","Arial Rounded MT Bold",Arial,sans-serif}button{font:inherit}
+main{min-height:100vh;display:grid;place-items:center;padding:28px;background:radial-gradient(circle at 12% 18%,#ffffff8c 0 7%,transparent 7.2%),radial-gradient(circle at 88% 78%,#ffffff59 0 10%,transparent 10.2%),linear-gradient(145deg,#8ee2f1,#65c9ea 52%,#52aee7)}
+.card{width:min(1100px,100%);background:var(--paper);border:5px solid var(--ink);border-radius:32px;padding:clamp(24px,4vw,48px);box-shadow:0 14px 0 #17223b47,0 24px 60px #17223b2e}
+header{text-align:center}.tag{display:inline-block;margin:0 0 8px;padding:7px 15px;border-radius:99px;background:var(--yellow);font-weight:900;letter-spacing:.06em;text-transform:uppercase;font-size:14px}
+h1{margin:0;font-size:clamp(34px,6vw,64px);line-height:.98;letter-spacing:-.045em}.intro{margin:12px 0 24px;color:#506079;font-size:clamp(16px,2.2vw,21px)}
+.machine{background:#24324f;border:4px solid var(--ink);border-radius:24px;padding:clamp(15px,2.5vw,28px);box-shadow:inset 0 -7px #0003}
+.row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:clamp(6px,1.4vw,15px)}.col{text-align:center;min-width:0}
+.turn{width:100%;height:clamp(42px,6vw,62px);border:0;color:#fff;background:var(--blue);cursor:pointer;font-size:clamp(17px,2.8vw,28px);box-shadow:inset 0 -5px var(--dark)}.up{border-radius:13px 13px 5px 5px}.down{border-radius:5px 5px 13px 13px}.turn:active{transform:translateY(3px);box-shadow:inset 0 -2px var(--dark)}
+.window{margin:7px 0;height:clamp(76px,12vw,130px);display:grid;place-items:center;background:linear-gradient(#dce3e8,#fff 19% 81%,#dce3e8);border:4px solid #0e172a;border-radius:10px;box-shadow:inset 0 8px 12px #0002,inset 0 -8px 12px #0002}
+.window span{font-family:Impact,"Arial Black",sans-serif;font-size:clamp(48px,9vw,92px);line-height:1;font-weight:900}.label{margin-top:10px;color:#fff}.label b{display:block;color:var(--yellow);font-size:clamp(16px,2vw,22px)}.label small{display:block;font-size:clamp(8px,1.15vw,12px);overflow-wrap:anywhere;opacity:.85}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}.whole{min-height:82px;border:4px solid var(--ink);border-radius:18px;display:flex;align-items:center;justify-content:center;gap:14px;cursor:pointer;color:var(--ink);box-shadow:0 6px var(--ink)}.whole:active{transform:translateY(5px);box-shadow:0 1px var(--ink)}.minus{background:#ffb5b9}.plus{background:#9ee9b3}.whole em{font-style:normal;font-size:44px;font-weight:900}.whole span{display:flex;flex-direction:column;font-size:15px}.whole strong{font-size:clamp(17px,2vw,22px)}
+.result{margin-top:22px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;font-size:17px}.result output{font-size:28px;font-weight:900;color:var(--blue)}.reset{margin-left:12px;border:0;border-bottom:2px solid;padding:5px 0;background:transparent;color:#526079;cursor:pointer;font-weight:700}
+button:focus-visible{outline:4px solid var(--yellow);outline-offset:3px}
+@media(max-width:680px){main{padding:12px;align-items:start}.card{border-width:3px;border-radius:22px;padding:20px 12px;margin:8px 0;box-shadow:0 8px 0 #17223b40}.machine{padding:11px 7px 14px;border-width:3px}.row{gap:4px}.window{border-width:2px;margin:5px 0}.label small{display:none}.controls{gap:9px}.whole{min-height:76px;border-width:3px;gap:7px;padding:5px}.whole em{font-size:32px}.whole span{font-size:12px}}
+</style>
+</head>
+<body>
+<main><section class="card">
+<header><p class="tag">Mathe mit Theo</p><h1>Das große Zählwerk</h1><p class="intro">Drehe eine Zahlenrolle oder zähle die ganze Zahl weiter.</p></header>
+<div class="machine" id="machine" aria-label="Zählwerk">
+<div class="row" id="digits"></div></div>
+<div class="controls">
+<button class="whole minus" id="minus"><em>−</em><span><strong>Eine ganze Zahl</strong>zurück</span></button>
+<button class="whole plus" id="plus"><span><strong>Eine ganze Zahl</strong>vor</span><em>+</em></button>
+</div>
+<div class="result"><span>Deine Zahl:</span><output id="result">0</output><button class="reset" id="reset">Auf null setzen</button></div>
+</section></main>
+<script>
+const names=["Hunderttausender","Zehntausender","Tausender","Hunderter","Zehner","Einer"],short=["HT","ZT","T","H","Z","E"];let value=0;
+const digits=document.getElementById("digits"),result=document.getElementById("result"),machine=document.getElementById("machine");
+function draw(){const a=String(value).padStart(6,"0").split("");digits.innerHTML=a.map((d,i)=>'<div class="col"><button class="turn up" data-i="'+i+'" data-d="1" aria-label="'+names[i]+' um eins vorwärts drehen">▲</button><div class="window"><span>'+d+'</span></div><button class="turn down" data-i="'+i+'" data-d="-1" aria-label="'+names[i]+' um eins zurück drehen">▼</button><div class="label"><b>'+short[i]+'</b><small>'+names[i]+'</small></div></div>').join("");result.value=value.toLocaleString("de-DE");machine.setAttribute("aria-label","Zählwerk. Aktuelle Zahl "+value)}
+digits.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const a=String(value).padStart(6,"0").split("").map(Number),i=+b.dataset.i;a[i]=(a[i]+(+b.dataset.d)+10)%10;value=+a.join("");draw()});
+document.getElementById("plus").onclick=()=>{value=(value+1)%1000000;draw()};document.getElementById("minus").onclick=()=>{value=(value+999999)%1000000;draw()};document.getElementById("reset").onclick=()=>{value=0;draw()};draw();
+</script>
+</body></html>
